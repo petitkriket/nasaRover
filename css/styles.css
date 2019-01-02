@@ -1,0 +1,120 @@
+body {
+	font-family: Arial;
+	background-color:#000;
+	height:100%;
+	margin-top: 8%;
+	font-size:1em;
+	line-height: 1.375em;
+	background-image: url("../img/bg.jpg");
+	background-position: initial;
+	background-repeat: no-repeat;
+	background-size: auto;
+}
+
+h1, h2, h3, h4 {
+	padding-bottom:20px;
+	color:#1c256f;
+}
+
+.container {
+	margin: 3%;
+	text-align: center;
+	max-width:500px;
+	margin: 0 auto;
+	border-radius: 30px;
+    background-color: white;
+	padding: 15px 45px 45px 45px;
+	box-shadow: 1px 1px 17px 2px #d6016c91;
+	border: 2px solid #bfbfbf;
+}
+
+.user-manual {
+	padding:5px;
+} 
+#grid {
+	position: relative;
+	max-height:500px;
+	max-width: 500px;
+} 
+
+.north, .east, .south, .west {
+	position: absolute;
+}
+
+.north {
+	left: 50%;
+	top:-20px;
+  }
+
+.south {
+left: 50%;
+bottom:-20px;
+}
+
+.east {
+	top: 50%;
+	right:-20px;
+}
+
+.west {
+	top: 50%;
+	left:-20px;
+}
+
+svg {
+	box-sizing: border-box;
+	border: 1px solid rgb(0, 0, 0);
+  }
+
+circle {
+stroke: rgb(200, 25, 25);
+stroke-width: 2;
+fill: rgba(255, 180, 180, 0.3);
+}
+
+#grid > svg > circle.rover.online-rover {
+	stroke: rgb(25, 200, 25);
+	stroke-width: 2;
+	fill: rgba(180, 255, 180, 0.3);
+	}
+
+line {
+stroke: rgb(220, 220, 220);
+stroke-width: 1px;
+	shape-rendering: auto;
+  }
+
+button {
+	color: #fff;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.btn-danger {
+    color: #fff;
+	background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+}

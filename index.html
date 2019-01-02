@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rover Control Kata</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="javascripts/app.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+</head>
+<body>
+<div class="container">
+	<h2>Rover Control Interface</h2>
+<div id="grid">
+		<div class="north">N</div>
+		<div class="east">E</div>
+		<div class="south">S</div>
+		<div class="west">W</div>
+	</div>
+<div class="user-manual"><p>Select the rover you wish to control and input a sequence using (l)eft (r)ight (f)orward and (b)ackward or simply use your keyboard arrows.</p></div>
+<div class="controls"><button id="remote" class="btn-success" onclick="initScenarii()">Tune to a Rover</button> &nbsp;&nbsp;<button id="disconnect" name="Remote Access" class="btn-danger" onclick="document.dispatchEvent(event2)">Disconnect</button></div>
+</div>
+</body>
+</html>
