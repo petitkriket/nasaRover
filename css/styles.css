@@ -33,8 +33,9 @@ h1, h2, h3, h4 {
 } 
 #grid {
 	position: relative;
-	max-height:500px;
-	max-width: 500px;
+	margin: 0 auto;
+	max-height:250px;
+	max-width: 250px;
 } 
 
 .north, .east, .south, .west {

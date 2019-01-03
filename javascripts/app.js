@@ -1,17 +1,61 @@
 // INITIALIZING VEHICULES
-// Default landing value is North, additional available directions can later be set to East, South and West.
-//
 // ======================
+// from JSON object..
+// https://next.json-generator.com/N1tCE68bU
 
-// make in json instead ? rover[0], over[1]..
-var rover = { direction : "North", position: { x: 0 , y: 0}, name: "Rover Opportunity", launchDate: "2001", destination: "Mars", travelLog: []};
-var rover2 = { direction : "North", position: { x: 9 , y: 9}, name: "Rover Dedication", launchDate: "2018", destination: "Mars", travelLog: [] };
+var crafts = [
+	{
+		"_id": "7eaa6cc6",
+		"name": "Rover Opportunity",
+		"isActive": false,
+		"launchDate": 2011,
+		"type": "probe",
+		"direction": "North",
+		"blackBox": ["Launch from Earth", "Landing on Mars"],
+		"position": {
+			"x": 0,
+			"y": 0
+		}
+	},
+	{
+		"_id": "5c2ce7",
+		"name": "Rover Dedication",
+		"isActive": false,
+		"launchDate": 2018,
+		"type": "probe",
+		"direction": "North",
+		"blackBox": ["Launch from Earth", "Landing on Mars"],		
+		"position": {
+			"x": 0,
+			"y": 0
+		}
+	},
+	{
+		"_id": "389eb7",
+		"name": "Rover Emulation",
+		"isActive": false,
+		"launchDate": 2034,
+		"type": "probe",
+		"blackBox": ["Launch from Earth", "Landing the Moon"],		
+		"position": {
+			"x": 1,
+			"y": 1
+		}
+	}
+];
+
+// use Json instead of object
+//var rover = { direction : "North", position: { x: 0 , y: 0}, name: "Rover Opportunity", launchDate: "2001", destination: "Mars", travelLog: []};
+//var rover2 = { direction : "North", position: { x: 9 , y: 9}, name: "Rover Dedication", launchDate: "2018", destination: "Mars", travelLog: [] };
+
+// dirty assign before refactoring
+var rover = crafts[0];
+var rover2 = crafts[1];
 
 // user is connected to no Rover by default
 var currentRover = null;
 
 // trigger event when a Rover is selected (to turn it green), red when offline.
-
 var event = new Event('roverSelection'); 
 var event2 = new Event('roverDisconnected'); 
 
@@ -73,7 +117,7 @@ function moveBackward(vehicule){
 
 // ======================
 // Focus commands on User chosen rover
-
+// TODO adapt for each json crafts[i]..
 function focusRover(vehicule) {
 	if (vehicule == 0) {
 		console.log("User disconnected");
@@ -106,7 +150,7 @@ function readCmd(input, vehicule, operator) {
 	for (var i = 0; i < input.length; i++) {
 
 		let value = input.charAt(i); 
-		// push operator, operation and date to log arr..
+		// push operator, operation and timestamp to log arr..
 		console.log(operator);
 		if (value === "l"){
 			turnLeft(vehicule);
@@ -168,11 +212,11 @@ document.onkeydown = function(e) {
 
 // Start emitting scenario on User click:
 // prompt for Rover choice and command sequence, default is rffrfflfrff
+
+// TODO adapt for each json crafts[i]..
 function initScenarii () {
 	var probe = prompt("Please choose a probing vehicule: \n- 1 for Opportunity Rover\n - 2 for Dedication Rover", "1");
-
 	var operator = prompt("Please enter your name");
-
 	var cmd = prompt("Please enter Rover's sequence... \n Available commands are :\n - (f)orward\n - (b)ackward\n- (l)eft\n- (r)ight", "zrffrfflfrff");
 
 	if (cmd != null && probe == 1) {
@@ -198,7 +242,7 @@ window.onload = function (){
 		resolution = 25,
 		r = 25;
 
-	// seed rovers TODO for each on rover[i].. x, y, name or id
+	// TODO adapt for each json crafts[i].. x, y and name
 	var points = d3.range(2).map(function() {
 		return {
 			x: round(Math.random() * width, resolution), 
@@ -224,7 +268,7 @@ window.onload = function (){
 		.attr("width", width)
 		.attr("height", height);
 
-	// draw vertical line TODO add bolder line each 2
+	// draw vertical line TODO add thicker line each 2
 	svg.selectAll(".vertical")
 		.data(d3.range(1, width / resolution))
 		.enter().append("line")
@@ -234,7 +278,7 @@ window.onload = function (){
 		.attr("x2", function(d) { return d * resolution; })
 		.attr("y2", height);
 	
-	// draw vertical line TODO add bolder line each 2
+	// draw vertical line TODO add thicker line each 2
 	svg.selectAll(".horizontal")
 		.data(d3.range(1, height / resolution))
 		.enter().append("line")
@@ -254,7 +298,7 @@ window.onload = function (){
 		.attr("transform", function(d) { return "translate(" + 12.5 + "," + 12.5 + ")"; }) // bypass grid offset
 		.classed("rover", true);
 		//.call(drag) // make it draggable 
-		// TODO ADD ORIENTATION CLUE 
+		// TODO ADD ORIENTATION CLUE NSWE... 
 	
 	// math max is enforcing bounds of draggable rovers TODO apply to user input
 	function dragged(d) {
@@ -272,7 +316,8 @@ window.onload = function (){
 	}
 
 	// DIRTY update of rover position on GUI
-	// TODO select circle corresponding to vehicule.. 
+	// see http://www.tutorialsteacher.com/d3js/event-handling-in-d3js
+	// for each vehicule, update position (currently only one rover is supported)
 	var circle = d3.select("circle");
 	setInterval(() => {
 		circle.transition()
@@ -288,14 +333,15 @@ window.onload = function (){
 			.classed("online-rover", true);
 	}, false);
 	
-	// disconnect rover	and turn it red when asked
+	// disconnect rover	and turn it red on event
 	document.addEventListener("roverDisconnected", function () { 
 		var circle = d3.select("circle")
 			.classed("online-rover", false);
 		focusRover(0);
 	}, false);
 
-	// add text to identify rovers 
+	// add text to identify rovers
+	// TODO dynamic text position 
 	// https://www.dashingd3js.com/svg-text-element
 	// http://bl.ocks.org/ChrisJamesC/4474971
 	var text = svg.selectAll("text")
@@ -313,40 +359,22 @@ window.onload = function (){
 		.attr("fill", "black")
 		.attr("transform", function(d) { return "translate(" + 12.5 + "," + 12.5 + ")"; });
 
-	// append text 3
-	d3.selectAll("circle.rover")
-		.append("text")
-		.attr("cx", rover.position.x * 25)
-		.attr("cy", rover.position.y * 25)
-		.text(function(d, i) {
-			return i + 1;
-		});
-
-	// draw obstacles
-	// var worries = svg.selectAll("obs")
-	// 	.data(obstacles)
-	// 	.enter().append("rect")
-	// 	.attr("x", function(d) { return d.x; })
-	// 	.attr("y", function(d) { return d.y; })
-	// 	.attr("width", r * 1)
-	// 	.attr("height", r * 1)
-	// 	.classed("obstacle", true)
-	// 	.call(drag)
 
 	// TODO add collision alert
 	var worries = svg.selectAll("obs")
 		.data(obstacles)
 		.enter().append("path")
 		.attr("d", d3.svg.symbol().type("triangle-up").size(200))
-		//.attr("transform", function(d) { return "translate(" + 10 + "," + 10 + ")"; })
 		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-
 		.style("fill", "grey");
 
 }; // end of window load
 
-// TOOD ADD A ZOOM OPTION https://bl.ocks.org/mbostock/6123708
+// COLLISION ALERT
+// ENFORCING BOUNDARIES
+// TODO ADD A ZOOM OPTION https://bl.ocks.org/mbostock/6123708
 // TODO REACT https://stackblitz.com/edit/react-rover
+// TODO PERSISTANCE with PG
 
 // **************************//
 // ***** TESTING STUFF ***** //
