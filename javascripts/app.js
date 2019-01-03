@@ -298,8 +298,9 @@ window.onload = function (){
 		.attr("transform", function(d) { return "translate(" + 12.5 + "," + 12.5 + ")"; }) // bypass grid offset
 		.classed("rover", true);
 		//.call(drag) // make it draggable 
-		// TODO ADD ORIENTATION CLUE NSWE... 
-	
+		
+	// TODO ADD ORIENTATION ARROW TO ROVER... 
+
 	// math max is enforcing bounds of draggable rovers TODO apply to user input
 	function dragged(d) {
 		var x = d3.event.x,
