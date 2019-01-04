@@ -1,7 +1,6 @@
 // INITIALIZING VEHICULES
 // ======================
-// from JSON object..
-// https://next.json-generator.com/N1tCE68bU
+// json data https://next.json-generator.com/N1tCE68bU
 
 var crafts = [
 	{
@@ -34,6 +33,8 @@ var crafts = [
 	},
 ];
 
+// libs
+var hulla;
 var d3;
 
 // user is connected to no Rover by default
@@ -80,7 +81,10 @@ function moveForward(vehicule){
 	else if (vehicule.direction === "South"){ vehicule.position.x += 0; vehicule.position.y += 1; } 
 	else { vehicule.position.x -= 1; vehicule.position.y += 0; } 
 	
-	console.log(vehicule.name + " current position is [" +vehicule.position.x+ " " +vehicule.position.y + "] after moving forward on your input.");
+	// TO DRY
+	let msg = vehicule.name + " current position is [" +vehicule.position.x+ " " +vehicule.position.y + "] after moving forward on your input.";
+	console.log(msg);
+
 	moveCircle(vehicule._id, vehicule.position.x, vehicule.position.y);
 }
 
@@ -91,9 +95,11 @@ function moveBackward(vehicule){
 	else if (vehicule.direction === "South"){ vehicule.position.x += 0; vehicule.position.y -= 1; } 
 	else { vehicule.position.x += 1; vehicule.position.y += 0; } 
 	
-	console.log(vehicule.name + " current position is [" +vehicule.position.x+ " " +vehicule.position.y + "] after moving backward on your input.");
-	moveCircle(vehicule._id, vehicule.position.x, vehicule.position.y);
+	// TO DRY
+	let msg = vehicule.name + " current position is [" +vehicule.position.x+ " " +vehicule.position.y + "] after moving backward on your input.";
+	console.log(msg);
 
+	moveCircle(vehicule._id, vehicule.position.x, vehicule.position.y);
 }
 
 // ======================
@@ -101,7 +107,13 @@ function moveBackward(vehicule){
 
 function focusVehicule(arr, i) {
 	if ((arr === "disconnect") && (i == null)){
-		console.log("User disconnected from " + currentRover.name + ".");
+		
+		// send log and notification
+		let msg = "User disconnected from " + currentRover.name + ".";
+		console.log(msg);
+		hulla.send(msg, "dark");
+		
+		// back to no controlled rover
 		currentRover = null;
 
 	}	else	{
@@ -117,11 +129,11 @@ function focusVehicule(arr, i) {
 // Log sequence, user and timestamp into vehicule blackbox..
 function readCmd(input, vehicule, operator) {
 
-	// log cmd into blackbox array
+	// log cmd into blackbox array and send notification
 	let log = "initiating sequence: " + input + " from " + operator.toUpperCase() + " on: +" + Math.round((new Date()).getTime() / 1000);
-	
 	console.log(log);
 	vehicule.blackBox.push(log);
+	hulla.send(log, "info");
 
 	for (var i = 0; i < input.length; i++) {
 
@@ -183,25 +195,95 @@ document.onkeydown = function(e) {
 // ======================
 // GUI
 
-// basic grid setup
+// basic grid setup, best results with square x^2 and x/10
 var width = 250,
 	height = 250,
 	resolution = 25,
-	r = 25;
+	r = 25; // rover size
 
-// Update online rover position on GUI
+// pull data (x, y, name) for crafts[i]
+// https://stackoverflow.com/questions/16058791/d3-js-how-to-use-map-function
+crafts.map(function(d) {
+	return {
+		x: round(d.position.x * width, resolution), 
+		y: round(d.position.y * height, resolution),
+		name: d.name,
+	};	
+});
+
+// create random obstacles
+var obstacles = d3.range(3).map(function() {
+	return {
+		x: round(Math.random() * width, resolution), 
+		y: round(Math.random() * height, resolution)
+	};
+});
+
+// update current used rover position on GUI
 function moveCircle(roverId, x, y) {
 	var circle = d3.selectAll("circle")
 		.filter(function(d, i) {
-			return i === roverId;
+			return i === roverId; // https://d3indepth.com/selections/
 		});
 	circle.transition()
-		.duration(1000)
+		.duration(250)
 		.attr("cx", x * r)
-		.attr("cy", y * r);
-	//.ease(d3.easeElastic); // BUGGY	
+		.attr("cy", y * r)
+		.ease("easebounce");
+
+	// check if rover position equals an obstacle (TODO  add zone area sensitivity)
+	obstacles.forEach(function(element) {
+		if ( (x == (element.x / r)) && (y == (element.y / r))) {
+			
+			// notify, disconnect
+			hulla.send("Rover is destroyed :(", "danger");
+			focusVehicule("disconnect");
+			document.dispatchEvent(event2)
+
+			// TODO REMOVE MARKER
+			var destroyedCircle = d3.selectAll("circle")
+				.filter(function(d, i) {
+					return i === roverId; // https://d3indepth.com/selections/
+				});
+			destroyedCircle.remove();
+
+		}
+	});
+
 }
 
+// change circle color according to rover's status
+document.addEventListener("roverSelection", function () { 
+	var circle = d3.select("circle")
+		.classed("online-rover", true);
+}, false);
+
+// disconnect rover	and turn it red on event TODO disconnect from specific rover (multiplayer)
+document.addEventListener("roverDisconnected", function () { 
+	var circle = d3.select("circle")
+		.classed("online-rover", false);
+	focusVehicule("disconnect");
+}, false);
+
+// math max is enforcing bounds of draggable rovers TODO HELP apply to user input
+function dragged(d) {
+	var x = d3.event.x,
+		y = d3.event.y,
+		gridX = round(Math.max(r, Math.min(width - r, x)), resolution),
+		gridY = round(Math.max(r, Math.min(height - r, y)), resolution);
+
+	d3.select(this).attr("cx", d.x = gridX).attr("cy", d.y = gridY);
+}
+
+// add draggable behaviour (for further dev)
+var drag = d3.behavior.drag()
+	.origin(function(d) { return d; })
+	.on("drag", dragged);
+
+// rounding values
+function round(p, n) {
+	return p % n < n / 2 ? p - (p % n) : p + n - (p % n);
+}
 
 // **************************//
 // **** EXERCISE RESULT **** //
@@ -240,41 +322,17 @@ function initScenarii (arr) {
 // **************************//
 // *********** GUI ********* //
 // **************************//
-// Using D3.js library
 // Adapted from https://bl.ocks.org/danasilver/cc5f33a5ba9f90be77d96897768802ca
 
 // do this stuff after page load.. TODO TIDY
 $(document).ready(function () {
-
-	// pull data (x, y, name) for crafts[i]
-	// https://stackoverflow.com/questions/16058791/d3-js-how-to-use-map-function
-	crafts.map(function(d) {
-		return {
-			x: round(d.position.x * width, resolution), 
-			y: round(d.position.y * height, resolution),
-			name: d.name,
-		};	
-	});
-
-	// create random obstacles
-	var obstacles = d3.range(3).map(function() {
-		return {
-			x: round(Math.random() * width, resolution), 
-			y: round(Math.random() * height, resolution)
-		};
-	});
-
-	// add draggable behaviour (for further dev)
-	var drag = d3.behavior.drag()
-		.origin(function(d) { return d; })
-		.on("drag", dragged);
 
 	// create a canvas 
 	var svg = d3.select("#grid").append("svg")
 		.attr("width", width)
 		.attr("height", height);
 
-	// draw lines TODO add thicker line each 2
+	// draw vertical lines TODO DRY
 	svg.selectAll(".vertical")
 		.data(d3.range(1, width / resolution))
 		.enter().append("line")
@@ -282,9 +340,15 @@ $(document).ready(function () {
 		.attr("x1", function(d) { return d * resolution; })
 		.attr("y1", 0)
 		.attr("x2", function(d) { return d * resolution; })
-		.attr("y2", height);
+		.attr("y2", height)
+		.each(function(d, i) {
+			var odd = i % 2 === 0;
+			d3.select(this)
+				//.style("stroke", odd ? "" : "grey")  // color change
+				.style("stroke-width", odd ? null : 1.75); // thicker line each 2
+		});
 	
-	// TODO add thicker line each 2
+	// horizontal lines
 	svg.selectAll(".horizontal")
 		.data(d3.range(1, height / resolution))
 		.enter().append("line")
@@ -292,8 +356,13 @@ $(document).ready(function () {
 		.attr("x1", 0)
 		.attr("y1", function(d) { return d * resolution; })
 		.attr("x2", width)
-		.attr("y2", function(d) { return d * resolution; });
-	
+		.attr("y2", function(d) { return d * resolution; })
+		.each(function(d, i) {
+			var odd = i % 2 === 0;
+			d3.select(this)
+				.style("stroke-width", odd ? null : 1.75); // thicker line each 2
+		});
+
 	// draw circle from  data
 	var circles = svg.selectAll("circle")
 		.data(crafts)
@@ -304,40 +373,22 @@ $(document).ready(function () {
 		.attr("r", r / 2)
 		.attr("transform", function(d) { return "translate(" + (resolution / 2) + "," + (resolution / 2) + ")"; }) // bypass circle position offset
 		.classed("rover", true);
-		//.call(drag) // make them draggable 
+		//.call(drag); // make them draggable 
 		
 	// TODO ADD ORIENTATION ARROW TO ROVER... 
+	// circles.append("text")
+	// 	.data(crafts)
+	// 	.attr("class", "rover")
+	// 	.attr("text-anchor", "middle")
+	// 	.attr("cx",  function(d) { return d.x; })
+	// 	.attr("cy",  function(d) { return d.y; })
+	// 	.attr("font-family", "Arial")
+	// 	.attr("font-size", "16px")
+	// 	.attr("fill", "black")
+	// 	.text(function(d) { return d.name; })
+	// 	.attr("transform", function(d) { return "translate(" + round(d.position.x * width, resolution) + "," + round(d.position.y * width, resolution) + ")"; });
 
-	// math max is enforcing bounds of draggable rovers TODO HELP apply to user input
-	function dragged(d) {
-		var x = d3.event.x,
-			y = d3.event.y,
-			gridX = round(Math.max(r, Math.min(width - r, x)), resolution),
-			gridY = round(Math.max(r, Math.min(height - r, y)), resolution);
-
-		d3.select(this).attr("cx", d.x = gridX).attr("cy", d.y = gridY);
-	}
-	
-	// rounding values
-	function round(p, n) {
-		return p % n < n / 2 ? p - (p % n) : p + n - (p % n);
-	}
-		
-	// change circle color according to rover's status
-	document.addEventListener("roverSelection", function () { 
-		var circle = d3.select("circle")
-			.classed("online-rover", true);
-	}, false);
-	
-	// disconnect rover	and turn it red on event TODO disconnect from specific rover (multiplayer)
-	document.addEventListener("roverDisconnected", function () { 
-		var circle = d3.select("circle")
-			.classed("online-rover", false);
-		focusVehicule("disconnect");
-	}, false);
-
-	// adding text to identify rovers
-	// TODO dynamic text position on moveCircle()
+	// display rovers name on map 
 	// https://www.dashingd3js.com/svg-text-element
 	// http://bl.ocks.org/ChrisJamesC/4474971
 	var text = svg.selectAll("text")
@@ -347,31 +398,28 @@ $(document).ready(function () {
 
 	// TODO UPDATE TEXT POSITION WITH ROVERS
 	var textLabels = text
-		//.data(circles)
-		.attr("x", function(d) { return d.x; })
-		.attr("y", function(d) { return d.y; })
+		.attr("x", function(d) { return d.position.x; })
+		.attr("y", function(d) { return d.position.y; })
 		.text( function (d) { return d.name; })
 		.attr("font-family", "Arial")
 		.attr("font-size", "16px")
-		.attr("fill", "black")
-		.attr("transform", function(d) { return "translate(" + round(Math.random() * width, resolution) + "," + round(Math.random() * width, resolution) + ")"; });
+		.attr("fill", "black");
+		//.attr("transform", function(d) { return "translate(" + round(d.position.x * width, resolution) + "," + round(d.position.y * width, resolution) + ")"; });
 
-
-	// TODO add collision alert
 	var worries = svg.selectAll("obs")
 		.data(obstacles)
 		.enter().append("path")
-		.attr("d", d3.svg.symbol().type("triangle-up").size(200))
-		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+		.attr("d", d3.svg.symbol().type("triangle-up").size(r * 10))
+		//.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; }) // obstacles on grid crossings
+		.attr("transform", function(d) { return "translate(" + (d.x + resolution / 2) + "," + (d.y + resolution / 2) + ")"; }) // bypass circle position offset
 		.style("fill", "grey");
 
 }); // end of window load
 
 // TODO ENFORCING BOUNDARIES https://bl.ocks.org/mbostock/1557377
-// TODO notification instead of console https://jsfiddle.net/mwatz122/1k3s7m80/
+// ORIENTATION CLUES
 // TODO add a Zoom option https://bl.ocks.org/mbostock/6123708
-// TODO ReactJs https://stackblitz.com/edit/react-rover
-// TODO persistance with Postgres
+// TODO React + SocketIO/Firebase https://stackblitz.com/edit/react-rover
 
 // **************************//
 // ***** TESTING STUFF ***** //

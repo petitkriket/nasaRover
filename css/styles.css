@@ -58,6 +58,10 @@ h1, h2, h3, h4, h5, h6 {
 	top: 50%;
 	left: -20px;
 }
+img.card-img {
+	opacity: 0.8;	
+	height: 75%;
+}
 
 svg {
 	box-sizing: border-box;

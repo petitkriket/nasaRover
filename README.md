@@ -13,11 +13,10 @@ Iteration 5 | Tracking : OK<br>
 Enforce Boundaries : TODO<br>
 Moving Backwards: OK <br>
 Validate Inputs: OK<br>
-Obstacles: ALMOST (not handling collision yet)<br>
+Obstacles: ALMOST OK (need to be set to a larger zone)<br>
 Other Rovers: OK<br>
+Scalable playground OK<br>
+<On screen notifications
 
-<h4>Further..</h4>
-- Bigger playground
-<br>- Persistance
-<br>- Two user live play
-<br>- On screen notifications
+<h4>Further to do :</h4>
+<br> Persistance or multiple user live play with Socket IO
