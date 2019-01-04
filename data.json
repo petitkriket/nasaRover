@@ -1,0 +1,29 @@
+[{
+	"sn": "7eaa6cc6",
+	"_id": 0,
+	"name": "Rover Opportunity",
+	"isActive": true,
+	"launchDate": 2011,
+	"type": "probe",
+	"direction": "North",
+	"blackBox": ["Launch from Earth", "Landing on Mars"],
+	"position": {
+		"x": 0,
+		"y": 0
+	}
+},
+{
+	"sn": "5c2ce7",
+	"_id": 1,
+	"name": "Rover Dedication",
+	"isActive": true,
+	"launchDate": 2018,
+	"type": "probe",
+	"direction": "North",
+	"blackBox": ["Launch from Earth", "Landing on Mars"],
+	"position": {
+		"x": 0,
+		"y": 0
+	}
+}
+]
