@@ -14,9 +14,9 @@ Enforce Boundaries : TODO<br>
 Moving Backwards: OK <br>
 Validate Inputs: OK<br>
 Obstacles: ALMOST (not handling collision yet)<br>
-Other Rovers: ALMOST (not handling switching controls yet)<br>
+Other Rovers: OK<br>
 
-<h4>Further TODO</h4>
+<h4>Further..</h4>
 - Bigger playground
 <br>- Persistance
 <br>- Two user live play
