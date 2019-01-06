@@ -33,7 +33,7 @@ var crafts = [{
 ];
 
 // declaring libs and app vars
-var currentRover;
+var currentVehicule;
 var d3;
 var hulla;
 
@@ -125,16 +125,24 @@ function defaultVehicule(arr){
 		return element.isActive;
 	});
 
-	// assign found vehicule to currentRover
-	currentRover = found;
+	// assign found vehicule to vehicule
+	currentVehicule = found;
 
-	// turn circle to green TODO precise circle selection for multiplayer
-	document.dispatchEvent(event);
+	if (found) {
+		// turn circle to green TODO precise circle selection for multiplayer
+		document.dispatchEvent(event);
 
-	// notify user
-	hulla.send("Connected to " +  found.name + "by default.. ", "info");
-	console.log("Connected to " +  found.name +  "by default.. ");
-	
+		// notify user
+		hulla.send("Connected to " +  found.name + " by default.. ", "info");
+		console.log("Connected to " +  found.name +  " by default.. ");
+	} else {
+		// if no more vehicule disable interface
+		hulla.send("There is no more vehicules !");
+		jQuery("#remote, #disconnect").prop("disabled", true); // Disables visually + functionally
+		jQuery("#remote").addClass("btn-danger text-white");
+
+
+	}
 	return found;
 }
 
@@ -142,50 +150,48 @@ function defaultVehicule(arr){
 // Focus commands on User chosen rover or disconnect
 
 function focusVehicule(arr, i) {
-	// check if useful TODO
-	if (currentRover != null ){
-		currentRover = arr[i];
+	// check if vehicule already online
+	if (currentVehicule != null ){
+		currentVehicule = arr[i];
 	} else {
-		currentRover = defaultVehicule(arr);
+		currentVehicule = defaultVehicule(arr);
 	}
 
-	// turn it to green
+	// turn it to green and notify
 	document.dispatchEvent(event);
-
-	// notify user
-	hulla.send("Connected to " +  currentRover.name, "info");
+	hulla.send("Connected to " +  currentVehicule.name, "info");
 	
-	return currentRover;
+	return currentVehicule;
 }
 
 function destroyVehicule() {
 
-	// send log and notification
-	console.log(currentRover.name + "  was destroyed ! ");
-	hulla.send(currentRover.name + "  was destroyed ! ", "danger");
+	// log and notify
+	console.log(currentVehicule.name + "  was destroyed ! ");
+	hulla.send(currentVehicule.name + "  was destroyed ! ", "danger");
 
-	console.log("User disconnected from " + currentRover.name + ".");
-	hulla.send("User disconnected from " + currentRover.name + ".", "dark");
+	console.log("User disconnected from " + currentVehicule.name + ".");
+	hulla.send("User disconnected from " + currentVehicule.name + ".", "dark");
 
 	// turn it red
 	document.dispatchEvent(event2);
 
-	// disable destroyed vehicule into selected array and set currentRover to none..
-	currentRover.isActive = false;
+	// disable destroyed vehicule into selected array and set currentVehicule to none..
+	currentVehicule.isActive = false;
 
 	// set current vehicule to none
-	currentRover = null;
+	currentVehicule = null;
 	
 }
 
 // change focused rover appearance, green for online, red for offline
 document.addEventListener("roverOn", function () {
-	var onlineVehicule = d3.select( "#vehicule" + currentRover._id )
+	var onlineVehicule = d3.select( "#vehicule" + currentVehicule._id )
 		.classed("online-rover", true);
 }, false);
 
 document.addEventListener("roverOff", function () {
-	var offlineVehicule = d3.select( "#vehicule" + currentRover._id )
+	var offlineVehicule = d3.select( "#vehicule" + currentVehicule._id )
 		.classed("online-rover", false);
 }, false);
 
@@ -236,22 +242,22 @@ function readCmd(input, vehicule, operator) {
 document.onkeydown = function (e) {
 	e = e || window.event;
 	// if a rover is currently
-	if (currentRover != null) {
+	if (currentVehicule != null) {
 		switch (e.which || e.keyCode) {
 		case 37: // left
-			turnLeft(currentRover);
+			turnLeft(currentVehicule);
 			break;
 
 		case 38: // up
-			moveForward(currentRover);
+			moveForward(currentVehicule);
 			break;
 
 		case 39: // right
-			turnRight(currentRover);
+			turnRight(currentVehicule);
 			break;
 
 		case 40: // down
-			moveBackward(currentRover);
+			moveBackward(currentVehicule);
 			break;
 
 		default:
@@ -260,7 +266,7 @@ document.onkeydown = function (e) {
 	} else {
 		
 		// default Rover is the first available a given array. TODO dynamic array select (crafts, probes, shuttles..)
-		currentRover = defaultVehicule(crafts); 
+		currentVehicule = defaultVehicule(crafts); 
 				
 	}
 	e.preventDefault(); // prevent the default action (scroll / move caret)
@@ -297,7 +303,7 @@ var obstacles = d3.range(3).map(function () {
 function moveCircle(x, y) {
 	
 	// select corresponding rover circle  // see filter or direct selection https://d3indepth.com/selections/ && https://stackoverflow.com/questions/20414980/d3-select-by-attribute-value
-	var selectedCircle = d3.select( "#vehicule" + currentRover._id ); 
+	var selectedCircle = d3.select( "#vehicule" + currentVehicule._id ); 
 	selectedCircle.transition()
 		.duration(250)
 		.attr("cx", x * r)
@@ -309,7 +315,7 @@ function moveCircle(x, y) {
 	obstacles.forEach(function (element) {
 		if ((x == (element.x / r)) && (y == (element.y / r))) {
 
-			var destroyedCircle = d3.select( "#vehicule" + currentRover._id );
+			var destroyedCircle = d3.select( "#vehicule" + currentVehicule._id );
 			
 			// remove and disable circle and vehicule
 			destroyedCircle.remove();
@@ -345,38 +351,38 @@ function round(p, n) {
 // **** EXERCISE RESULT **** //
 // **************************//
 
-// Start emitting exercise scenario on User click:
 // prompt for Rover choice and command sequence, default is rffrfflfrff, ask again if not valid
 // TODO refactor to remove array selection, filter by type : probes, satellites, rockets instead..
 
 function initScenarii(arr) {
+	// list current enabled vehicules..
+	let i;
+	let list = [];
+	for (i = 0; i < arr.length; i++) { 
+		if (arr[i].isActive){
+			list += "\n- (" + arr[i]._id + ") for Rover " +  arr[i].name;
+		}
+	}
 
-	// TODO BUGGY HELP loop trhough array to create a list of available Rovers for User prompt according to JSON data
-	// TODO REFACTOR to assign  currentVehicule to chosen probe from availables 
-
-	// let list = []; 
-	// arr.forEach(function(i) {
-	// 	list.push(arr.join(i.name + ",\n "));
-	// });
-	// var probe = prompt("Please choose a probing vehicule:"+ list );
-	
-	var probe = prompt("Please choose a probing vehicule* :\n- 1 for Opportunity Rover\n- 2 for Dedication Rover", "1");
+	// ask user
+	var probe = prompt("Please choose a vehicule* :" + list, "1");
 	var operator = prompt("Please enter your name.");
 	var cmd = prompt("Please enter Rover's sequence* :\n Available commands are :\n- (f)orward\n- (b)ackward\n- (l)eft\n- (r)ight", "zrffrfflfrff");
 
-	// if commands were inputed and probe is a valid vehicule id then exec, else ask again..
-	if (!cmd) {
+	
+	if (!cmd) { // if commands is empty, TODO RECURSIVE ??
 		cmd = prompt("Command sequence can't be empty...", "bbrff");
-
 	}
 	if (operator.length < 1) {
-		operator = "GUEST";
+		operator = "GUEST"; // default user name
 
-	} else if (probe.length < 1) {
-		var probe = prompt("Please choose a valid probe* : \n- 1 for Opportunity Rover\n - 2 for Dedication Rover", "1");
+	} if (probe > probe.length || probe / probe != 1) { // probe validation
+		probe = prompt("Please choose a valid probe* :" + list, "1");
+		console.log(probe);
+		hulla.send(probe);
 	}
 
-	readCmd(cmd, focusVehicule(arr, (probe - 1)), operator); // exec prompted command when all params are ok
+	readCmd(cmd, focusVehicule(arr, (probe - 1)), operator); // exec when params are ok
 }
 
 // **************************//
@@ -484,7 +490,6 @@ $(document).ready(function () {
 		.data(obstacles)
 		.enter().append("path")
 		.attr("d", d3.svg.symbol().type("triangle-up").size(r * 10))
-		//.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; }) // obstacles on grid crossings
 		.attr("transform", function (d) { return "translate(" + (d.x + resolution / 2) + "," + (d.y + resolution / 2) + ")"; }) // bypass circle position offset
 		.style("fill", "grey");
 
