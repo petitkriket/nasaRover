@@ -10,13 +10,16 @@ Iteration 4 | Commands ‘rffrfflfrff’ : OK<br>
 Iteration 5 | Tracking : OK<br>
 
 <h3>Bonus</h3>
-Enforce Boundaries : TODO<br>
+TODO Enforce Boundaries<br>
 Moving Backwards: OK <br>
 Validate Inputs: OK<br>
-Obstacles: ALMOST OK (need to be set to a larger zone)<br>
+Obstacles: OK <br>
 Other Rovers: OK<br>
 Scalable playground OK<br>
-<On screen notifications
+On screen notifications OK
+Labels OK
 
 <h4>Further to do :</h4>
+<br> Bugfix initial position
+<br> Orientation hint
 <br> Persistance or multiple user live play with Socket IO

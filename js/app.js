@@ -310,19 +310,29 @@ function moveCircle(x, y) {
 		.attr("cy", y * r)
 		.ease("easebounce");
 
+	// move related text
+	var selectedText = d3.select( "#label" + currentVehicule._id ); 
+	selectedText.transition()
+		.duration(250)
+		.attr("x", x * r - r) 
+		.attr("y", y * r + r + 10)
+		.ease("easebounce");
+		
 	// check if rover position equals an obstacle on each move 
 	// TODO add zone area sensitivity to handle bigger obstacles
 	obstacles.forEach(function (element) {
 		if ((x == (element.x / r)) && (y == (element.y / r))) {
 
 			var destroyedCircle = d3.select( "#vehicule" + currentVehicule._id );
-			
+			var destroyedText = d3.select( "#label" + currentVehicule._id );
+
 			// remove and disable circle and vehicule
 			destroyedCircle.remove();
+			destroyedText.remove();
 			destroyVehicule();
+
 		}
 	});
-
 }
 
 // math max is enforcing bounds of draggable rovers TODO HELP apply to user input
@@ -451,18 +461,6 @@ $(document).ready(function () {
 
 	// TODO ADD ORIENTATION ARROW TO ROVER... 
 
-	// circles.append("text")
-	// 	.data(crafts)
-	// 	.attr("class", "rover")
-	// 	.attr("text-anchor", "middle")
-	// 	.attr("cx",  function(d) { return d.x; })
-	// 	.attr("cy",  function(d) { return d.y; })
-	// 	.attr("font-family", "Arial")
-	// 	.attr("font-size", "16px")
-	// 	.attr("fill", "black")
-	// 	.text(function(d) { return d.name; })
-	// 	.attr("transform", function(d) { return "translate(" + round(d.position.x * width, resolution) + "," + round(d.position.y * width, resolution) + ")"; });
-
 	// display rovers name on map 
 	// https://www.dashingd3js.com/svg-text-element
 	// http://bl.ocks.org/ChrisJamesC/4474971
@@ -471,21 +469,17 @@ $(document).ready(function () {
 		.enter()
 		.append("text");
 
-	// TODO UPDATE TEXT POSITION WITH ROVERS
+	// rovers text labels
 	var textLabels = text
-		.attr("x", function (d) {
-			return d.position.x;
-		})
-		.attr("y", function (d) {
-			return d.position.y;
-		})
-		.text(function (d) {
-			return d.name;
-		})
+		.attr("x", function (d) { return d.position.x * r - r; })
+		.attr("y", function (d) { return d.position.y * r + 10; })
+		.text(function (d) { return d.name; })
+		.attr("id", function(d){ return ("label" + d._id); })
 		.attr("font-family", "Arial")
-		.attr("font-size", "16px")
-		.attr("fill", "black")
+		.attr("font-size", "11px")
+		.attr("fill", "grey");
 
+	// obstacles style
 	var worries = svg.selectAll("obs")
 		.data(obstacles)
 		.enter().append("path")
